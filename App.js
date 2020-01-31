@@ -6,7 +6,8 @@ import JSZip from "jszip";
 
 class App extends React.Component {
   state = {
-    exercices: []
+    exercices: [],
+    googleSheets: []
   };
 
   componentDidMount() {
@@ -206,17 +207,14 @@ class App extends React.Component {
   }
 
   export() {
+    const title =
+      "Sp Training DATA (" + this.getdateFr() + " à " + this.getHeure() + ")";
     this.setState({
       exportLoading: true
     });
     var spreadsheetBody = {
       properties: {
-        title:
-          "Sp Training DATA (" +
-          this.getdateFr() +
-          " à " +
-          this.getHeure() +
-          ")"
+        title
       },
       sheets: this.getSheets()
     };
@@ -227,11 +225,17 @@ class App extends React.Component {
     );
     request.then(response => {
       console.log(response.result);
-      window.open(
+      const url =
         "https://docs.google.com/spreadsheets/d/" +
-          response.result.spreadsheetId
-      );
+        response.result.spreadsheetId;
+      window.open(url);
+      const googleSheets = this.state.googleSheets;
+      googleSheets.push({
+        url,
+        title
+      });
       this.setState({
+        googleSheets,
         exportLoading: false
       });
     });
@@ -254,6 +258,20 @@ class App extends React.Component {
           <br />
           <span>{chartData.length} séries</span>
         </div>
+      );
+    });
+    const googleSheets = [];
+    this.state.googleSheets.forEach((sheet, index) => {
+      googleSheets.push(
+        <a
+          href={sheet.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          title={sheet.title}
+          className="sheet"
+        >
+          <img src="sheet.webp" alt={sheet.title} />
+        </a>
       );
     });
     return (
@@ -291,6 +309,8 @@ class App extends React.Component {
           ""
         )}
         {this.state.exportLoading ? <p>Export en cours...</p> : null}
+        <br />
+        {googleSheets}
         <br />
         {charts}
       </div>
